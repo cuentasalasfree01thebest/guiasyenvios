@@ -1,11 +1,19 @@
 from pathlib import Path
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast=bool, default=False)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1').split(',')
+
+ENV = config('DJANGO_ENV', default='production')
+if DEBUG and ENV != 'development':
+    raise ImproperlyConfigured(
+        " DEBUG=True solo está permitido cuando DJANGO_ENV=development. "
+        "Agrega DJANGO_ENV=development en tu .env local."
+    )
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,4 +68,5 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
