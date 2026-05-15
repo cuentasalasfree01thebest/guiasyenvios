@@ -1,8 +1,16 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('envios-theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Envíos{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,11 +19,12 @@
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
   <style>
-    :root {
-      --bg: #f6f7fb;
+    :root,
+    html[data-theme="light"] {
+      --bg: #ffffff;
       --surface: #ffffff;
-      --surface2: #f1f3f9;
-      --border: #d7dce8;
+      --surface2: #f5f6f8;
+      --border: #e4e7ef;
       --accent: #c99700;
       --accent2: #e07040;
       --success: #16a34a;
@@ -67,7 +76,9 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      font-size: 14px
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
     }
 
     .card,
@@ -96,9 +107,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
       position: sticky;
       top: 0;
       z-index: 100
+    }
+
+    .header-end {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
     }
 
     .logo {
@@ -198,9 +217,119 @@
     }
 
     main {
+      flex: 1;
       padding: 32px 28px;
       max-width: 900px;
-      margin: 0 auto
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .site-footer {
+      margin-top: 32px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      width: 100%;
+    }
+
+    .footer-inner {
+      width: 100%;
+      padding: 20px clamp(20px, 4vw, 48px) 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px 40px;
+    }
+
+    .footer-brand {
+      flex: 1 1 280px;
+      max-width: 360px;
+    }
+
+    .footer-brand .footer-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .footer-brand p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .footer-col {
+      flex: 0 0 auto;
+      min-width: 150px;
+    }
+
+    .footer-col h4 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-col a,
+    .footer-col li {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      transition: color 0.15s;
+    }
+
+    .footer-col a:hover {
+      color: var(--text);
+    }
+
+    .footer-col .footer-highlight {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding: 10px clamp(20px, 4vw, 48px) 12px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .footer-inner {
+        flex-wrap: wrap;
+        gap: 20px 28px;
+        padding: 18px 24px 14px;
+      }
+
+      .footer-brand {
+        flex: 1 1 100%;
+        max-width: none;
+      }
+
+      .footer-col {
+        flex: 1 1 140px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .footer-inner {
+        flex-direction: column;
+        gap: 18px;
+      }
     }
 
     .theme-toggle {
@@ -218,31 +347,30 @@
 
 <body>
   <header>
-    <a href="/" class="logo">RASTREAR TUS GUIAS <span> · Y ENVIOS</span></a>
-    <button id="themeToggle" class="btn btn-ghost theme-toggle" type="button" aria-label="Cambiar tema">
-      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2">
-        <circle cx="12" cy="12" r="5" />
-        <path
-          d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-      </svg>
-
-      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-      </svg>
-    </button>
-    <nav>
-      {% if user.is_staff %}
-      <a href="{% url 'crear_guia' %}" class="nav-link {% block nav_crear %}{% endblock %}">+ Crear Guía</a>
-      {% endif %}
-
-      <a href="{% url 'rastrear_inicio' %}" class="nav-link {% block nav_rastrear %}{% endblock %}">Rastrear</a>
-
-      {% if user.is_staff %}
-      <a href="/admin/" class="nav-link" target="_blank">Admin ↗</a>
-      {% endif %}
-    </nav>
+    <a href="/" class="logo">MIS GUIAS <span> · ONLINE</span></a>
+    <div class="header-end">
+      <button id="themeToggle" class="btn btn-ghost theme-toggle" type="button" aria-label="Cambiar tema">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <path
+            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
+      <nav>
+        {% if user.is_staff %}
+        <a href="{% url 'crear_guia' %}" class="nav-link {% block nav_crear %}{% endblock %}">+ Crear Guía</a>
+        {% endif %}
+        <a href="{% url 'rastrear_inicio' %}" class="nav-link {% block nav_rastrear %}{% endblock %}">Rastrear</a>
+        {% if user.is_staff %}
+        <a href="/admin/" class="nav-link" target="_blank">Admin ↗</a>
+        {% endif %}
+      </nav>
+    </div>
   </header>
 
   {% if messages %}
@@ -256,13 +384,44 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-logo">MIS GUIAS · ONLINE</span>
+        <p>Plataforma de rastreo y gestión de envíos. Consulta el estado de tu paquete en tiempo real con tu número de guía.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Enlaces</h4>
+        <ul>
+          <li><a href="{% url 'rastrear_inicio' %}">Rastrear envío</a></li>
+          {% if user.is_staff %}
+          <li><a href="{% url 'crear_guia' %}">Crear guía</a></li>
+          <li><a href="/admin/" target="_blank" rel="noopener">Panel administrador</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Información</h4>
+        <ul>
+          <li class="footer-col">Atención: domingo a domingo · 24/7</li>
+          <li>Envíos nacionales y entregas programadas</li>
+          <li>Actualización de estado vía portal de rastreo</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © {% now "Y" %} Mis Guías Online · Todos los derechos reservados
+    </div>
+  </footer>
+
   <script>
     (function () {
       const root = document.documentElement;
       const toggle = document.getElementById('themeToggle');
 
       const storageKey = 'envios-theme';
-      let currentTheme = localStorage.getItem(storageKey) || 'dark';
+      let currentTheme = localStorage.getItem(storageKey) || 'light';
       root.setAttribute('data-theme', currentTheme);
 
       function updateButton() {
