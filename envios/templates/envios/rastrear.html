@@ -1,0 +1,800 @@
+{% extends 'envios/base.html' %}
+{% block title %}Rastrear Envío{% endblock %}
+{% block nav_rastrear %}active{% endblock %}
+{% block extra_css %}
+{% load static %}
+<style>
+    .search-wrap {
+        text-align: center;
+        margin-bottom: 36px
+    }
+
+    .search-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 6px
+    }
+
+    .search-sub {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 20px
+    }
+
+    .search-box {
+        display: flex;
+        gap: 10px;
+        max-width: 480px;
+        margin: 0 auto
+    }
+
+    .search-input {
+        flex: 1;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 11px 16px;
+        font-family: 'Space Mono', monospace;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s
+    }
+
+    .search-input:focus {
+        border-color: var(--accent)
+    }
+
+    .search-input::placeholder {
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text-muted)
+    }
+
+    .result-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        animation: fadeUp 0.3s ease
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(14px)
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0)
+        }
+    }
+
+    .progress-bar {
+        height: 4px;
+        background: var(--surface2)
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, var(--accent), var(--success));
+        transition: width 0.6s ease
+    }
+
+    .progress-fill.paso-0 {
+        width: 0%
+    }
+
+    .progress-fill.paso-1 {
+        width: 20%
+    }
+
+    .progress-fill.paso-2 {
+        width: 40%
+    }
+
+    .progress-fill.paso-3 {
+        width: 60%
+    }
+
+    .progress-fill.paso-4 {
+        width: 80%
+    }
+
+    .progress-fill.paso-5 {
+        width: 100%
+    }
+
+    .result-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(135deg, rgba(240, 192, 64, 0.08), rgba(96, 165, 250, 0.05))
+    }
+
+    .guia-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px
+    }
+
+    .guia-num {
+        font-family: 'Space Mono', monospace;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: 2px
+    }
+
+    .guia-ruta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 4px
+    }
+
+    .status-bar {
+        background: var(--surface2);
+        padding: 14px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: inline-block;
+        margin-right: 8px;
+        animation: pulse 2s infinite
+    }
+
+    .status-dot.done {
+        background: var(--success);
+        animation: none
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1
+        }
+
+        50% {
+            opacity: 0.5
+        }
+    }
+
+    .status-name {
+        font-weight: 600;
+        font-size: 14px
+    }
+
+    .persons-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-bottom: 1px solid var(--border)
+    }
+
+    .person-box {
+        padding: 16px 24px;
+        border-right: 1px solid var(--border)
+    }
+
+    .person-box:last-child {
+        border-right: none
+    }
+
+    .person-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 6px
+    }
+
+    .person-name {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px
+    }
+
+    .person-detail {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.6
+    }
+
+    .timeline-wrap {
+        padding: 24px
+    }
+
+    .timeline-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 20px
+    }
+
+    .timeline {
+        display: flex;
+        flex-direction: column
+    }
+
+    .t-step {
+        display: flex;
+        gap: 16px;
+        padding-bottom: 22px;
+        position: relative
+    }
+
+    .t-step:last-child {
+        padding-bottom: 0
+    }
+
+    .t-step:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 32px;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+        z-index: 0
+    }
+
+    .t-step.completado::before {
+        background: rgba(74, 222, 128, 0.4)
+    }
+
+    .t-step.activo::before {
+        background: linear-gradient(to bottom, rgba(240, 192, 64, 0.5), var(--border))
+    }
+
+    .t-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+        z-index: 1;
+        border: 2px solid var(--border);
+        background: var(--surface2)
+    }
+
+    .t-step.completado .t-circle {
+        background: rgba(74, 222, 128, 0.15);
+        border-color: var(--success)
+    }
+
+    .t-step.activo .t-circle {
+        background: rgba(240, 192, 64, 0.15);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(240, 192, 64, 0.1)
+    }
+
+    .t-step.pendiente .t-circle {
+        opacity: 0.35
+    }
+
+    .t-content {
+        padding-top: 4px
+    }
+
+    .t-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 2px
+    }
+
+    .t-step.completado .t-name {
+        color: var(--success)
+    }
+
+    .t-step.activo .t-name {
+        color: var(--accent)
+    }
+
+    .t-step.pendiente .t-name {
+        color: var(--text-muted)
+    }
+
+    .t-desc {
+        font-size: 12px;
+        color: var(--text-muted)
+    }
+
+    .share-box {
+        margin: 0 24px 20px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px
+    }
+
+    .share-url {
+        font-family: 'Space Mono', monospace;
+        font-size: 11px;
+        color: var(--blue);
+        flex: 1;
+        word-break: break-all
+    }
+
+    .copy-btn {
+        background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--text-muted);
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s
+    }
+
+    .copy-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent)
+    }
+
+    .not-found {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted)
+    }
+
+    .not-found-icon {
+        font-size: 52px;
+        margin-bottom: 16px;
+        opacity: 0.35
+    }
+
+    .not-found-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px
+    }
+
+    @media(max-width:500px) {
+        .persons-row {
+            grid-template-columns: 1fr
+        }
+
+        .person-box {
+            border-right: none;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .search-box {
+            flex-direction: column
+        }
+    }
+
+    .promo-strip {
+        margin-top: 40px;
+        padding: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        backdrop-filter: blur(6px);
+        overflow: hidden;
+    }
+
+    .promo-head {
+        margin-bottom: 16px;
+    }
+
+    .promo-kicker {
+        display: inline-block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--accent);
+        margin-bottom: 6px;
+    }
+
+    .promo-head h3 {
+        font-size: 20px;
+        margin-bottom: 6px;
+        color: var(--text);
+    }
+
+    .promo-head p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .promo-carousel {
+        position: relative;
+    }
+
+    .promo-viewport {
+        overflow: hidden;
+        border-radius: 16px;
+        width: 100%;
+    }
+
+    .promo-track {
+        display: flex;
+        transition: transform 0.55s ease;
+        will-change: transform;
+    }
+
+    .promo-slide {
+        min-width: 100%;
+        position: relative;
+        opacity: .88;
+    }
+
+    .promo-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: .88;
+    }
+
+    .promo-slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top,
+                rgba(0, 0, 0, .58) 0%,
+                rgba(0, 0, 0, .16) 55%,
+                transparent 100%);
+    }
+
+    .promo-overlay {
+        position: absolute;
+        left: 18px;
+        bottom: 16px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-width: 80%;
+    }
+
+    .promo-overlay strong {
+        font-size: 18px;
+        color: #fff;
+    }
+
+    .promo-overlay span {
+        font-size: 13px;
+        color: rgba(255, 255, 255, .84);
+    }
+
+    .promo-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, .88);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 3;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+        padding: 0;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .promo-nav.prev {
+        left: 12px;
+    }
+
+    .promo-nav.next {
+        right: 12px;
+    }
+
+    .promo-nav svg {
+        display: block;
+        flex-shrink: 0;
+    }
+
+    html[data-theme="dark"] .promo-nav {
+        background: rgba(24, 24, 31, .78);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, .16);
+    }
+
+    html[data-theme="light"] .promo-strip {
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    .promo-nav:hover {
+        background: rgba(255, 255, 255, .08);
+        border-color: rgba(240, 192, 64, .4);
+        color: var(--accent);
+    }
+
+    .promo-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .promo-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: none;
+        background: var(--border);
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.15s, transform 0.15s;
+    }
+
+    .promo-dot.active {
+        background: var(--accent);
+        transform: scale(1.1);
+    }
+
+    @media(max-width:640px) {
+        .promo-slide img {
+            height: 180px;
+        }
+
+        .promo-overlay strong {
+            font-size: 16px;
+        }
+
+        .promo-overlay span {
+            font-size: 12px;
+        }
+
+        .promo-nav {
+            width: 34px;
+            height: 34px;
+            font-size: 20px;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="search-wrap">
+    <div class="search-title">Rastrea tu envío</div>
+    <div class="search-sub">Ingresa el número de guía para ver el estado actualizado</div>
+    <form action="{% url 'buscar_guia' %}" method="GET">
+        <div class="search-box">
+            <input type="text" name="numero" class="search-input" placeholder="Número de guía..."
+                value="{{ numero_buscado|default:'' }}" required>
+            <button type="submit" class="btn btn-primary">Rastrear</button>
+        </div>
+    </form>
+</div>
+
+{% if guia %}
+<div class="result-card">
+    <div class="progress-bar">
+        <div class="progress-fill paso-{{ guia.paso_actual }}"></div>
+    </div>
+
+    <div class="result-header">
+        <div class="guia-label">Número de guía</div>
+        <div class="guia-num">{{ guia.numero }}</div>
+        {% if guia.remitente_ciudad and guia.dest_ciudad %}
+        <div class="guia-ruta">{{ guia.remitente_ciudad|upper }} → {{ guia.dest_ciudad|upper }}</div>
+        {% endif %}
+    </div>
+
+    <div class="status-bar">
+        <div>
+            <span class="status-dot {% if guia.paso_actual == 5 %}done{% endif %}"></span>
+            <span class="status-name">{{ guia.get_paso_actual_display }}</span>
+        </div>
+        <span style="font-size:12px;color:var(--text-muted)">{{ guia.empresa }}</span>
+    </div>
+
+    <div class="persons-row">
+        <div class="person-box">
+            <div class="person-label">📤 Remitente</div>
+            <div class="person-name">{{ guia.remitente_nombre }}</div>
+            <div class="person-detail">
+                {{ guia.remitente_dir }}<br>
+                {{ guia.remitente_ciudad }}{% if guia.remitente_depto %}, {{ guia.remitente_depto }}{% endif %}<br>
+                {{ guia.remitente_tel }}
+            </div>
+        </div>
+        <div class="person-box">
+            <div class="person-label">📥 Destinatario</div>
+            <div class="person-name">{{ guia.dest_nombre }}</div>
+            <div class="person-detail">
+                {{ guia.dest_dir }}<br>
+                {{ guia.dest_ciudad }}{% if guia.dest_depto %}, {{ guia.dest_depto }}{% endif %}<br>
+                {{ guia.dest_tel }}
+                {% if guia.dest_obs %}<br><em>{{ guia.dest_obs }}</em>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="timeline-wrap">
+        <div class="timeline-title">Historial de seguimiento</div>
+        <div class="timeline">
+            {% for paso in pasos %}
+            <div class="t-step {{ paso.estado }}">
+                <div class="t-circle">
+                    {% if paso.estado == 'completado' %}✓
+                    {% elif paso.estado == 'activo' %}{{ paso.icono }}
+                    {% else %}○{% endif %}
+                </div>
+                <div class="t-content">
+                    <div class="t-name">{{ paso.nombre }}</div>
+                    <div class="t-desc">
+                        {% if paso.estado == 'activo' %}⏳ {{ paso.desc }}
+                        {% elif paso.estado == 'completado' %}Completado
+                        {% else %}Pendiente{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if user.is_staff %}
+    <div class="share-box">
+        <span
+            style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-right:8px">🔒
+            Admin</span>
+        <span class="share-url" id="share-url">{{ request.build_absolute_uri }}</span>
+        <button class="copy-btn"
+            onclick="navigator.clipboard.writeText(document.getElementById('share-url').textContent).then(()=>{this.textContent='¡Copiado!';setTimeout(()=>this.textContent='Copiar link',2000)})">Copiar
+            link</button>
+    </div>
+    <div style="margin: 0 24px 20px;">
+        <a href="{% url 'guia_vista' guia.numero %}" target="_blank" class="copy-btn"
+            style="display:inline-block;text-decoration:none;padding:10px 14px;">
+            🖨️ Ver guía imprimible
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% elif numero_buscado %}
+<div class="not-found">
+    <div class="not-found-icon">❌</div>
+    <div class="not-found-title">Guía no encontrada</div>
+    <p>No encontramos la guía <strong style="color:var(--text)">#{{ numero_buscado }}</strong>. Verifica el número e
+        intenta de nuevo.</p>
+</div>
+{% endif %}
+
+<section class="promo-strip" aria-label="Promociones">
+    <div class="promo-head">
+        <span class="promo-kicker">Servicios</span>
+        <h3>También movemos lo importante para tu negocio</h3>
+        <p>Envíos nacionales, entregas rápidas y atención personalizada.</p>
+    </div>
+
+    <div class="promo-carousel" data-carousel>
+        <button class="promo-nav prev" type="button" aria-label="Anterior">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+
+        <div class="promo-viewport">
+            <div class="promo-track" id="promoTrack">
+                <article class="promo-slide is-active">
+                    <img src="{% static 'envios/img/banner-1.png' %}" alt="Servicio de entregas nacionales"
+                        loading="lazy" width="1200" height="500">
+                    <div class="promo-overlay">
+                        <strong>Envíos nacionales</strong>
+                        <span>Cobertura para tus despachos en diferentes ciudades.</span>
+                    </div>
+                </article>
+
+                <article class="promo-slide">
+                    <img src="{% static 'envios/img/banner-2.png' %}" alt="Entrega rápida de paquetes" loading="lazy"
+                        width="1200" height="500">
+                    <div class="promo-overlay">
+                        <strong>Entrega rápida</strong>
+                        <span>Optimiza tus tiempos con rutas más ágiles.</span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <button class="promo-nav next" type="button" aria-label="Siguiente">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="promo-dots" id="promoDots" aria-label="Indicadores del carrusel"></div>
+</section>
+
+<script>
+    (function () {
+        const carousel = document.querySelector('[data-carousel]');
+        if (!carousel) return;
+
+        const track = document.getElementById('promoTrack');
+        const slides = Array.from(track.children);
+        const prevBtn = carousel.querySelector('.prev');
+        const nextBtn = carousel.querySelector('.next');
+        const dotsWrap = document.getElementById('promoDots');
+
+        let index = 0;
+        let interval;
+
+        slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'promo-dot' + (i === 0 ? ' active' : '');
+            dot.type = 'button';
+            dot.setAttribute('aria-label', `Ir a promoción ${i + 1}`);
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsWrap.appendChild(dot);
+        });
+
+        const dots = Array.from(dotsWrap.children);
+
+        function updateCarousel() {
+            track.style.transform = `translateX(-${index * 100}%)`;
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+        }
+
+        function goToSlide(i) {
+            index = (i + slides.length) % slides.length;
+            updateCarousel();
+        }
+
+        function nextSlide() {
+            goToSlide(index + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(index - 1);
+        }
+
+        function startAutoplay() {
+            stopAutoplay();
+            interval = setInterval(nextSlide, 3500);
+        }
+
+        function stopAutoplay() {
+            if (interval) clearInterval(interval);
+        }
+
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            startAutoplay();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            startAutoplay();
+        });
+
+        carousel.addEventListener('mouseenter', stopAutoplay);
+        carousel.addEventListener('mouseleave', startAutoplay);
+        carousel.addEventListener('focusin', stopAutoplay);
+        carousel.addEventListener('focusout', startAutoplay);
+
+        updateCarousel();
+        startAutoplay();
+    })();
+</script>
+{% endblock %}

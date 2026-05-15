@@ -1,0 +1,139 @@
+{% extends 'envios/base.html' %}
+{% block title %}Crear Guía{% endblock %}
+{% block nav_crear %}active{% endblock %}
+{% block extra_css %}
+<style>
+.page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-sub{color:var(--text-muted);font-size:13px;margin-bottom:28px}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-grid.three{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+.field input,.field textarea,.field .form-control{background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.15s;width:100%}
+.field input:focus,.field textarea:focus,.field .form-control:focus{border-color:var(--accent)}
+.field input::placeholder,.field textarea::placeholder,.field .form-control::placeholder{color:var(--text-muted)}
+.field.has-error input,.field.has-error .form-control{border-color:var(--accent2)}
+.field-error-msg{font-size:12px;color:var(--accent2)}
+.form-errors{background:rgba(224,112,64,0.12);border:1px solid rgba(224,112,64,0.3);color:var(--accent2);padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:13px}
+.form-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+@media(max-width:600px){.field-grid,.field-grid.three{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-title">Crear nueva guía</div>
+<div class="page-sub">Completa los datos del envío para generar la guía</div>
+
+<form method="POST" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="form-errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-card">
+    <div class="section-title">Información de la guía</div>
+    <div class="field-grid three">
+      <div class="field {% if form.numero.errors %}has-error{% endif %}">
+        <label for="{{ form.numero.id_for_label }}">{{ form.numero.label }} *</label>
+        {{ form.numero }}
+        {% for error in form.numero.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.empresa.errors %}has-error{% endif %}">
+        <label for="{{ form.empresa.id_for_label }}">{{ form.empresa.label }}</label>
+        {{ form.empresa }}
+        {% for error in form.empresa.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.valor.errors %}has-error{% endif %}">
+        <label for="{{ form.valor.id_for_label }}">{{ form.valor.label }}</label>
+        {{ form.valor }}
+        {% for error in form.valor.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="section-title">Remitente</div>
+    <div class="field-grid" style="margin-bottom:12px">
+      <div class="field {% if form.remitente_nombre.errors %}has-error{% endif %}">
+        <label for="{{ form.remitente_nombre.id_for_label }}">{{ form.remitente_nombre.label }} *</label>
+        {{ form.remitente_nombre }}
+        {% for error in form.remitente_nombre.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.remitente_tel.errors %}has-error{% endif %}">
+        <label for="{{ form.remitente_tel.id_for_label }}">{{ form.remitente_tel.label }}</label>
+        {{ form.remitente_tel }}
+        {% for error in form.remitente_tel.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="field-grid three">
+      <div class="field {% if form.remitente_ciudad.errors %}has-error{% endif %}">
+        <label for="{{ form.remitente_ciudad.id_for_label }}">{{ form.remitente_ciudad.label }} *</label>
+        {{ form.remitente_ciudad }}
+        {% for error in form.remitente_ciudad.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.remitente_depto.errors %}has-error{% endif %}">
+        <label for="{{ form.remitente_depto.id_for_label }}">{{ form.remitente_depto.label }}</label>
+        {{ form.remitente_depto }}
+        {% for error in form.remitente_depto.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.remitente_dir.errors %}has-error{% endif %}">
+        <label for="{{ form.remitente_dir.id_for_label }}">{{ form.remitente_dir.label }}</label>
+        {{ form.remitente_dir }}
+        {% for error in form.remitente_dir.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="section-title">Destinatario</div>
+    <div class="field-grid" style="margin-bottom:12px">
+      <div class="field {% if form.dest_nombre.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_nombre.id_for_label }}">{{ form.dest_nombre.label }} *</label>
+        {{ form.dest_nombre }}
+        {% for error in form.dest_nombre.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.dest_tel.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_tel.id_for_label }}">{{ form.dest_tel.label }}</label>
+        {{ form.dest_tel }}
+        {% for error in form.dest_tel.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="field-grid three" style="margin-bottom:12px">
+      <div class="field {% if form.dest_ciudad.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_ciudad.id_for_label }}">{{ form.dest_ciudad.label }} *</label>
+        {{ form.dest_ciudad }}
+        {% for error in form.dest_ciudad.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.dest_depto.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_depto.id_for_label }}">{{ form.dest_depto.label }}</label>
+        {{ form.dest_depto }}
+        {% for error in form.dest_depto.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.dest_peso.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_peso.id_for_label }}">{{ form.dest_peso.label }}</label>
+        {{ form.dest_peso }}
+        {% for error in form.dest_peso.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field {% if form.dest_dir.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_dir.id_for_label }}">{{ form.dest_dir.label }}</label>
+        {{ form.dest_dir }}
+        {% for error in form.dest_dir.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.dest_obs.errors %}has-error{% endif %}">
+        <label for="{{ form.dest_obs.id_for_label }}">{{ form.dest_obs.label }}</label>
+        {{ form.dest_obs }}
+        {% for error in form.dest_obs.errors %}<span class="field-error-msg">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-footer">
+    <button type="reset" class="btn btn-ghost">Limpiar</button>
+    <button type="submit" class="btn btn-primary">Crear guía →</button>
+  </div>
+</form>
+{% endblock %}
